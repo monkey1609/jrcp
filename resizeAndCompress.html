@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width,inital-scale=1.0,user-scalable=no">
+    <meta charset="UTF-8">
+    <title>resize and compress image</title>
+    <!--<link rel="stylesheet" href="css/css.css">-->
+    <script src="js/encode.js"></script>
+    <script src="js/crypto-js.js"></script>
+    <script src="js/base64.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/js.js"></script>
+    <script src="js/ajaxfileupload.js"></script>
+    <script src="js/jrcp.js"></script>
+</head>
+<body>
+        <div class="sfcontent">
+            
+            <hr>
+            <div id="input" style="position: relative">
+                <input type="file" id="file" accept="image/*;capture=camera">
+                <br>
+                <span>support jpg/jpeg and png etc.</span>
+            </div>
+        </div>
+
+    <button class="submit" id="face">
+        commit
+    </button>
+    </div>
+
+        <img id = "desImage" src="image/test.jpg" width="600" height="800" />
+   
+</body>
+
+<script>
+    var imageData;
+    var maxFileSize = 1024*100;
+    $("#file").change(function(){
+        var file = this.files[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function(e){
+                      //load the image file and go to compress
+                      var li = document.createElement("li");
+                      //$(li).css("background-image", "url(" + result + ")");
+
+                      //if the image file's size smaller than maxsize, don't compress
+                      if (this.result.length <= maxFileSize) {
+                          imageData=this.result.split(",")[1];
+                          return;
+                      }else{
+                          var result = this.result;
+                          var img = new Image();
+                          img.src = result;
+                          var size = result.length;
+
+                          //start call the resizeAndCompress function after the image loaded
+                          if (img.complete) {
+                            loadFinish();
+                         } else {
+                            img.onload = loadFinish;
+                          }
+
+                          function loadFinish() {
+                              //resize and compress the image
+                              var data = resizeAndCompress(img, 0.85, 800*600);
+
+                              console.log(data.length);
+                              imageData = data.split(",")[1];
+
+                              var disImage = document.getElementById('desImage');
+                              disImage.data = data;
+                              disImage.flush();
+
+                              //var disimage = new Image();
+                              //disimage.src = imageData;
+                              //document.getElementById(desImage).innerHTML = disimage;
+
+                              img = null;
+                          }
+                      }
+        }
+    });
+   
+    $(".submit").click(function(){
+        console.log("start commit");
+        {
+
+            var data='{"imageData":"'+imageData+'"}';
+
+            $.ajax({
+                type:'POST',
+                url:"http://www.github.com/jrcp/uploadimage.do",
+                data:{uploadData:data
+                },
+                success:function(data){
+                   alert("success");
+
+                },
+                dataType:'json'
+            });
+        }
+    })
+    
+    
+</script>
+</html>
